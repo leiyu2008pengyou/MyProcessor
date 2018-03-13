@@ -5,6 +5,7 @@ import android.view.View;
 
 /**
  * Created by leiyu on 2018/1/31.
+ * 支持fragment
  */
 
 public class ViewFinder implements Finder{

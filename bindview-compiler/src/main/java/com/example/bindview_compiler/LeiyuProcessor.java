@@ -1,6 +1,10 @@
 package com.example.bindview_compiler;
 
 import com.example.BindLayout;
+import com.example.BindView;
+import com.example.OnClick;
+import com.example.PermissionCheck;
+import com.example.PermissionGranted;
 import com.google.auto.service.AutoService;
 
 import java.io.IOException;
@@ -49,9 +53,11 @@ public class LeiyuProcessor extends AbstractProcessor{
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> types = new LinkedHashSet<>();
-//        types.add(BindView.class.getCanonicalName());
-//        types.add(OnClick.class.getCanonicalName());
+        types.add(BindView.class.getCanonicalName());
+        types.add(OnClick.class.getCanonicalName());
         types.add(BindLayout.class.getCanonicalName());
+        types.add(PermissionCheck.class.getCanonicalName());
+        types.add(PermissionGranted.class.getCanonicalName());
         return types;
     }
 
@@ -69,8 +75,10 @@ public class LeiyuProcessor extends AbstractProcessor{
             mAnnotationClassMap.clear();
         }
         try {
-//            processBindView(roundEnv);
-//            processOnClick(roundEnv);
+            processBindView(roundEnv);
+            processOnClick(roundEnv);
+            processPermissionCheck(roundEnv);
+            processPermissionGranted(roundEnv);
             processBindLayout(roundEnv);
         } catch (IllegalArgumentException e) {
             error(e.getMessage());
@@ -96,9 +104,52 @@ public class LeiyuProcessor extends AbstractProcessor{
         }
     }
 
+    private void processBindView(RoundEnvironment roundEnv) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(BindView.class)) {
+            AnnotationClass annotatedClass = getAnnotatedClass(element);
+            BindViewField field = new BindViewField(element);
+            annotatedClass.addField(field);
+        }
+    }
+
+    private void processOnClick(RoundEnvironment roundEnv) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(OnClick.class)) {
+            AnnotationClass annotatedClass = getAnnotatedClass(element);
+            OnClickMethod method = new OnClickMethod(element);
+            annotatedClass.addMethod(method);
+        }
+    }
+
+    private void processPermissionCheck(RoundEnvironment roundEnv) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(PermissionCheck.class)) {
+            AnnotationClass annotatedClass = getAnnotatedClass(element);
+            PermissionCheckClass method = new PermissionCheckClass(element);
+            annotatedClass.addMethod(method);
+        }
+    }
+
+    private void processPermissionGranted(RoundEnvironment roundEnv) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(PermissionGranted.class)) {
+            AnnotationClass annotatedClass = getAnnotatedClass(element);
+            PermissionGrantedClass method = new PermissionGrantedClass(element);
+            annotatedClass.addMethod(method);
+        }
+    }
+
     private AnnotationClass getAnnotatedClassForBindLayout(Element element) {
         //不需要获取父类
         TypeElement enclosingElement = (TypeElement) element;
+        String fullClassName = enclosingElement.getQualifiedName().toString();
+        AnnotationClass annotatedClass = mAnnotationClassMap.get(fullClassName);
+        if (annotatedClass == null) {
+            annotatedClass = new AnnotationClass(enclosingElement, mElementUtils);
+            mAnnotationClassMap.put(fullClassName, annotatedClass);
+        }
+        return annotatedClass;
+    }
+
+    private AnnotationClass getAnnotatedClass(Element element) {
+        TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
         String fullClassName = enclosingElement.getQualifiedName().toString();
         AnnotationClass annotatedClass = mAnnotationClassMap.get(fullClassName);
         if (annotatedClass == null) {
