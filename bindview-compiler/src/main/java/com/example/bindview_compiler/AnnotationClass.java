@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
@@ -105,27 +106,24 @@ public class AnnotationClass {
                         .addParameter(String[].class, "permissions")
                         .addParameter(int[].class, "grantResults");
                 CodeBlock.Builder caseBlock = CodeBlock.builder().beginControlFlow("switch(requestCode)");
-                for (Map.Entry<String, int[]> entry : customRationaleMap.entrySet()) {
-                    String methodName = entry.getKey();
-                    int[] ints = entry.getValue();
-                    for (int requestCode : ints) {
-                        caseBlock.add("case $L:\n", requestCode).indent();
-                        if (singleCustomRationaleMap.containsKey(requestCode)) {
-                            singleCustomRationaleMap.remove(requestCode);
-                        }
-                    }
-                    caseBlock.addStatement("object.$N(code)", methodName);
-                    caseBlock.addStatement("return true").unindent();
+
+                Name methodName = mMethods.get(i).getMethodName();
+                int[] ints = ((PermissionGrantedClass)mMethods.get(i)).ids;
+                for (int requestCode : ints) {
+                    caseBlock.add("case $L:\n", requestCode).indent();
                 }
-                for (Map.Entry<Integer, String> entry : singleCustomRationaleMap.entrySet()) {
-                    int requestCode = entry.getKey();
+                caseBlock.addStatement("object.$N(code)", methodName);
+                caseBlock.addStatement("return true").unindent();
+
+                for (int requestCode : ints) {
                     caseBlock.add("case $L:", requestCode).indent();
-                    caseBlock.addStatement("object.$N()", entry.getValue());
-                    caseBlock.addStatement("return true").unindent();
+                    caseBlock.addStatement("object.$N()", methodName);
                 }
+
+                caseBlock.addStatement("return true").unindent();
                 caseBlock.add("default:\n").indent().addStatement("return false").unindent();
                 caseBlock.endControlFlow();
-                injectMethodBuilder.addCode(caseBlock.build());*/
+                permissionGrantedMethodBuilder.addCode(caseBlock.build());*/
             }
         }
         if(hasPermissionAnnotation){
@@ -166,6 +164,9 @@ public class AnnotationClass {
         }
         if(permissionRequestMethodBuilder != null){
             finderClass.addMethod(permissionRequestMethodBuilder.build());
+        }
+        if(permissionGrantedMethodBuilder != null){
+            finderClass.addMethod(permissionGrantedMethodBuilder.build());
         }
         return JavaFile.builder(packageName, finderClass.build()).build();
     }

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
@@ -17,7 +18,10 @@ import com.example.BindLayout;
 import com.example.BindView;
 import com.example.OnClick;
 import com.example.PermissionCheck;
+import com.example.PermissionGranted;
 import com.example.bindview_api.finder.LyViewInjector;
+import com.example.leiyu.service.Ilogin;
+import com.example.leiyu.service.LaifengService;
 
 @BindLayout(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
@@ -40,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
     public void ok() {
         Toast.makeText(this, "MyProcessor", Toast.LENGTH_SHORT).show();
         showCamera();
+        Intent intent = new Intent(this, SecondActivity.class);
+        startActivity(intent);
+        LaifengService.getService(Ilogin.class).login();
+        System.out.println("22222222");
     }
 
     @PermissionCheck({Manifest.permission.CAMERA})
@@ -52,5 +60,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @PermissionGranted({CAMERA_CODE})
+    public void grantedMethod(){
 
+    }
 }
