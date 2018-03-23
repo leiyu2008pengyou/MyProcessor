@@ -12,6 +12,7 @@ import com.example.leiyu.service.LaifengServiceImpl;
  */
 
 public class MyApplication extends Application {
+    private static MyApplication application;
     @Override
     public void onCreate() {
         super.onCreate();
